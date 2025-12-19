@@ -3,840 +3,371 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Stranger Things 5: The Final Watch</title>
+    <title>ST5 | StrangerThings.space</title>
     
-    <!-- Google Fonts -->
-    <link href="https://fonts.googleapis.com/css2?family=Benguiat:wght@400;700&family=Roboto+Mono:wght@400;700&family=Press+Start+2P&display=swap" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Roboto+Mono:wght@400;700&display=swap" rel="stylesheet">
+    <link href="https://fonts.cdnfonts.com/css/itc-benguiat" rel="stylesheet">
     
-    <!-- Tailwind CSS -->
     <script src="https://cdn.tailwindcss.com"></script>
 
-    <!-- Lucide Icons -->
-    <script src="https://unpkg.com/lucide@latest"></script>
-
-    <!-- Tailwind Config -->
-    <script>
-        tailwind.config = {
-            theme: {
-                extend: {
-                    fontFamily: {
-                        'stranger': ['Benguiat', 'serif'],
-                        'mono': ['Roboto Mono', 'monospace'],
-                        'arcade': ['"Press Start 2P"', 'cursive'],
-                    },
-                    colors: {
-                        'netflix-red': '#E50914',
-                        'vecna-red': '#8B0000',
-                        'upside-dark': '#0a0a0a',
-                        'neon-blue': '#00f3ff',
-                    },
-                    animation: {
-                        'barber': 'barber 1s linear infinite',
-                        'intro': 'intro 4s ease-out forwards',
-                        'flicker': 'flicker 2s infinite',
-                        'scanline': 'scanline 8s linear infinite',
-                    },
-                    keyframes: {
-                        barber: {
-                            '0%': { backgroundPosition: '40px 0' },
-                            '100%': { backgroundPosition: '0 0' },
-                        },
-                        intro: {
-                            '0%': { transform: 'scale(15)', opacity: '0', letterSpacing: '2rem' },
-                            '100%': { transform: 'scale(1)', opacity: '1', letterSpacing: '-0.05em' },
-                        },
-                        flicker: {
-                            '0%, 19%, 21%, 23%, 25%, 54%, 56%, 100%': { opacity: '1' },
-                            '20%, 24%, 55%': { opacity: '0.8' },
-                        },
-                        scanline: {
-                            '0%': { transform: 'translateY(-100%)' },
-                            '100%': { transform: 'translateY(100%)' }
-                        }
-                    }
-                }
-            }
-        }
-    </script>
-
-    <style>
-        body {
-            background-color: #050505;
-            color: #e5e5e5;
-            overflow-x: hidden;
-            font-family: 'Roboto Mono', monospace;
-            transition: background 1s ease;
-        }
-
-        /* --- CRT EFFECT --- */
-        .crt-overlay {
-            position: fixed;
-            top: 0;
-            left: 0;
-            width: 100vw;
-            height: 100vh;
-            background: linear-gradient(rgba(18, 16, 16, 0) 50%, rgba(0, 0, 0, 0.25) 50%), linear-gradient(90deg, rgba(255, 0, 0, 0.06), rgba(0, 255, 0, 0.02), rgba(0, 0, 255, 0.06));
-            background-size: 100% 2px, 3px 100%;
-            pointer-events: none;
-            z-index: 999;
-        }
-
-        .crt-flicker {
-            animation: flicker 0.15s infinite;
-            opacity: 0.9;
-        }
-        
-        /* Scanline bar */
-        .scanline-bar {
-            width: 100%;
-            height: 100px;
-            z-index: 998;
-            background: linear-gradient(0deg, rgba(0,0,0,0) 0%, rgba(255, 255, 255, 0.05) 50%, rgba(0,0,0,0) 100%);
-            opacity: 0.1;
-            position: fixed;
-            bottom: 100%;
-            animation: scanline 10s linear infinite;
-            pointer-events: none;
-        }
-
-        /* --- BACKGROUNDS --- */
-        body.right-side-up {
-            background: radial-gradient(circle at 50% 0%, #1e293b 0%, #0f172a 40%, #000000 100%);
-        }
-
-        body.upside-down-mode {
-            background: radial-gradient(circle at 50% 0%, #450a0a 0%, #1a0505 40%, #000000 100%);
-        }
-        
-        body.upside-down-mode .crt-overlay {
-            background: linear-gradient(rgba(50, 0, 0, 0.1) 50%, rgba(0, 0, 0, 0.5) 50%);
-            background-size: 100% 4px;
-        }
-
-        /* --- TEXT EFFECTS --- */
-        .stranger-title {
-            font-family: 'Benguiat', serif;
-            text-shadow: 
-                0 0 5px #ff0000,
-                0 0 10px #8b0000,
-                0 0 20px #000;
-            cursor: pointer;
-            transition: transform 0.8s ease-in-out, filter 0.5s ease;
-            display: inline-block;
-            white-space: nowrap;
-        }
-
-        .upside-down-mode .stranger-title {
-            transform: rotate(180deg);
-            filter: drop-shadow(0 0 15px #ff0000);
-        }
-
-        .upside-down-mode .glass-card {
-            border-color: #7f1d1d;
-            background: rgba(40, 0, 0, 0.4);
-        }
-
-        /* --- BARBERSHOP POLL BARS --- */
-        .poll-bar-fill {
-            background-image: linear-gradient(
-                45deg,
-                rgba(255, 255, 255, 0.15) 25%,
-                transparent 25%,
-                transparent 50%,
-                rgba(255, 255, 255, 0.15) 50%,
-                rgba(255, 255, 255, 0.15) 75%,
-                transparent 75%,
-                transparent
-            );
-            background-size: 20px 20px;
-        }
-
-        /* --- SPLIT FLAP DISPLAY --- */
-        .flap-unit {
-            position: relative;
-            background: #111;
-            border-radius: 4px;
-            color: #ddd;
-            font-family: 'Roboto Mono', monospace;
-            text-align: center;
-            box-shadow: 0 4px 6px rgba(0,0,0,0.8);
-            overflow: hidden;
-            border: 1px solid #333;
-        }
-        .flap-line {
-            position: absolute;
-            top: 50%;
-            left: 0;
-            width: 100%;
-            height: 1px;
-            background: #000;
-            z-index: 10;
-            box-shadow: 0 1px 0 rgba(255,255,255,0.1);
-        }
-
-        /* --- CARDS --- */
-        .glass-card {
-            background: rgba(20, 20, 20, 0.6);
-            backdrop-filter: blur(4px);
-            border: 1px solid rgba(255, 255, 255, 0.1);
-            transition: all 0.3s ease;
-            box-shadow: 0 0 10px rgba(0,0,0,0.5);
-        }
-        
-        .glass-card:hover {
-            transform: translateY(-2px);
-            box-shadow: 0 0 20px rgba(229, 9, 20, 0.2);
-            border-color: rgba(229, 9, 20, 0.5);
-        }
-
-        .death-pool-card {
-            background: rgba(10, 10, 10, 0.8);
-            border: 1px solid #333;
-        }
-        
-        /* Floating "spores" for upside down */
-        .spore {
-            position: absolute;
-            background: rgba(255, 0, 0, 0.6);
-            border-radius: 50%;
-            box-shadow: 0 0 4px #ff0000;
-        }
-        
-        .particle {
-            position: absolute;
-            background: white;
-            border-radius: 50%;
-            opacity: 0.8;
-        }
-
-        .ash {
-            background: #aaa;
-            opacity: 0.5;
-        }
-
-        /* --- JOYCE'S LIGHTS --- */
-        .lights-container {
-            position: fixed;
-            top: 0;
-            left: 0;
-            width: 100%;
-            height: 150px;
-            pointer-events: none;
-            z-index: 50;
-            display: none; 
-        }
-        .wire {
-            position: absolute;
-            top: -20px;
-            left: -5%;
-            width: 110%;
-            height: 100px;
-            border-bottom: 2px solid #222;
-            border-radius: 50%;
-        }
-        .bulb-holder {
-            position: absolute;
-            top: 65px; 
-            display: flex;
-            flex-direction: column;
-            align-items: center;
-            transform-origin: top center;
-        }
-        .bulb-c9 {
-            width: 16px;
-            height: 30px;
-            border-radius: 50% 50% 20% 20%;
-            margin-top: -2px;
-            position: relative;
-            box-shadow: 0 0 10px currentColor;
-        }
-        .bulb-c9::after {
-            content: '';
-            position: absolute;
-            top: 5px;
-            left: 4px;
-            width: 4px;
-            height: 8px;
-            background: rgba(255,255,255,0.4);
-            border-radius: 50%;
-        }
-
-    </style>
-</head>
-<body class="min-h-screen right-side-up relative transition-colors duration-1000">
-
-    <!-- CRT Overlay -->
-    <div class="crt-overlay"></div>
-    <div class="scanline-bar"></div>
-
-    <!-- Audio Elements -->
-    <audio id="bg-music" loop>
-        <source src="https://www.soundhelix.com/examples/mp3/SoundHelix-Song-1.mp3" type="audio/mpeg">
-    </audio>
-    <!-- SFX -->
-    <audio id="sfx-flip" src="https://www.soundjay.com/switches/switch-1.mp3"></audio>
-    <audio id="sfx-vote" src="https://www.soundjay.com/buttons/button-09.mp3"></audio>
-
-    <!-- Firebase SDKs -->
     <script type="module">
         import { initializeApp } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-app.js";
-        import { getFirestore, doc, getDoc, updateDoc, setDoc, increment, collection, onSnapshot } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js";
-        // IMPORT FIX: Added signInWithCustomToken
-        import { getAuth, signInAnonymously, signInWithCustomToken } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-auth.js";
+        import { getFirestore, doc, getDoc, updateDoc, setDoc, increment, onSnapshot } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js";
 
-        // Global variables provided by environment
-        const appId = typeof __app_id !== 'undefined' ? __app_id : 'default-app-id';
-        const firebaseConfig = JSON.parse(__firebase_config);
+        const firebaseConfig = {
+            apiKey: "AIzaSyAqEtbev8LIQXbs9y-SS1Wb4ETSAkne0NY",
+            authDomain: "stranger-predictions.firebaseapp.com",
+            projectId: "stranger-predictions",
+            storageBucket: "stranger-predictions.firebasestorage.app",
+            messagingSenderId: "132076207960",
+            appId: "1:132076207960:web:b15f98fe8953b7106eaf2d",
+            measurementId: "G-13XEZ9XJRK"
+        };
 
         const app = initializeApp(firebaseConfig);
-        const auth = getAuth(app);
         const db = getFirestore(app);
 
-        // --- AUTH & INIT ---
-        const initAuth = async () => {
-             if (typeof __initial_auth_token !== 'undefined' && __initial_auth_token) {
-                await signInWithCustomToken(auth, __initial_auth_token);
-             } else {
-                await signInAnonymously(auth);
-             }
-        };
-        
-        initAuth().then(() => {
-            console.log("Connected to Hawkins Power & Light...");
-            setupGlobalListener(); // Listen for total votes
-        }).catch(err => {
-            console.error("Mind Flayer interference:", err);
-            // Fallback for demo purposes if auth fails completely
-            setupGlobalListener();
-        });
+        // --- DYNAMIC TARGET LOGIC ---
+        function getTargetDate() {
+            const now = new Date(new Date().toLocaleString("en-US", {timeZone: "America/New_York"}));
+            const switchPoint = new Date("2025-12-26T08:00:00-05:00");
+            
+            if (now >= switchPoint) {
+                // Countdown to New Years Eve 8pm EST
+                return new Date("2025-12-31T20:00:00-05:00");
+            }
+            // Default Countdown to Christmas 8pm EST
+            return new Date("2025-12-25T20:00:00-05:00");
+        }
 
-        // --- DATA ---
-        
-        const characters = [
-            "Eleven", "Vecna", "Will", "Dustin", "Steve", 
-            "Mike", "Max", "Nancy", "Johnathan", "Robin", 
-            "Vicky", "Erica", "Kali (008)", "Holly", "Derek", 
-            "Murray", "Hopper", "Joyce", "Dr. Kay"
+        const predictionQuestions = [
+            { id: "el_lives", question: "Eleven: Lives or Dies?", options: ["Lives", "Dies"] },
+            { id: "vecna_lives", question: "Vecna: Lives or Dies?", options: ["Lives", "Dies"] },
+            { id: "will_lives", question: "Will Byers: Lives or Dies?", options: ["Lives", "Dies"] },
+            { id: "dustin_lives", question: "Dustin: Lives or Dies?", options: ["Lives", "Dies"] },
+            { id: "steve_lives", question: "Steve Harrington: Lives or Dies?", options: ["Lives", "Dies"] },
+            { id: "mike_lives", question: "Mike Wheeler: Lives or Dies?", options: ["Lives", "Dies"] },
+            { id: "max_lives", question: "Max Mayfield: Lives or Dies?", options: ["Lives", "Dies"] },
+            { id: "nancy_lives", question: "Nancy Wheeler: Lives or Dies?", options: ["Lives", "Dies"] },
+            { id: "john_lives", question: "Jonathan Byers: Lives or Dies?", options: ["Lives", "Dies"] },
+            { id: "robin_lives", question: "Robin Buckley: Lives or Dies?", options: ["Lives", "Dies"] },
+            { id: "erica_lives", question: "Erica Sinclair: Lives or Dies?", options: ["Lives", "Dies"] },
+            { id: "murray_lives", question: "Murray: Lives or Dies?", options: ["Lives", "Dies"] },
+            { id: "hopper_lives", question: "Hopper: Lives or Dies?", options: ["Lives", "Dies"] },
+            { id: "joyce_lives", question: "Joyce: Lives or Dies?", options: ["Lives", "Dies"] },
+            { id: "dim_x", question: "Is Dimension X real?", options: ["Yes", "No"] },
+            { id: "henry_evil", question: "Is Henry Creel truly evil?", options: ["Yes", "No"] },
+            { id: "wormholes", question: "Will wormholes appear?", options: ["Yes", "No"] },
+            { id: "mind_ult", question: "Is Mind Flayer the final boss?", options: ["Yes", "No"] }
         ];
 
-        const theoryQuestions = [
-            {
-                id: "villain_ultimate",
-                question: "Who is the ULTIMATE Evil?",
-                options: ["Vecna", "Mind Flayer", "The Government", "Will"]
-            },
-            {
-                id: "dimension_x",
-                question: "Is Dimension X Real?",
-                options: ["Yes", "No"]
-            },
-            {
-                id: "henry_alignment",
-                question: "Is Henry Creel truly evil?",
-                options: ["Yes", "No", "It's Complicated"]
-            },
-            {
-                id: "wormholes",
-                question: "Will wormholes appear?",
-                options: ["Yes", "No"]
-            },
-            {
-                id: "eddie_return",
-                question: "Is Eddie Alive?",
-                options: ["No", "Yes (Vampire Kas)", "Flashback Only"]
-            },
-            {
-                id: "max_sight",
-                question: "Will Max see again?",
-                options: ["Yes", "No"]
-            },
-            {
-                id: "time_jump",
-                question: "Is there a huge time jump?",
-                options: ["Yes", "No"]
-            },
-            {
-                id: "byler",
-                question: "Will Byler happen?",
-                options: ["Yes", "No"]
-            }
-        ];
-
-        // --- GLOBAL FUNCTIONS ---
-        
-        window.toggleUpsideDown = () => {
-            document.body.classList.toggle('upside-down-mode');
-            document.body.classList.toggle('right-side-up');
-            
-            // SFX
-            const sfx = document.getElementById('sfx-flip');
-            if(sfx) { sfx.currentTime = 0; sfx.play().catch(e=>{}); }
-
-            // Re-render particles based on mode
-            const container = document.getElementById('particles-container');
-            container.innerHTML = '';
-            initParticles();
-        };
-        
-        // Music Toggle
-        window.toggleMusic = () => {
-            const audio = document.getElementById('bg-music');
-            const icon = document.getElementById('music-icon');
-            if (audio.paused) {
-                audio.volume = 0.3;
-                audio.play();
-                icon.innerHTML = '<i data-lucide="pause-circle" class="w-6 h-6"></i>';
-            } else {
-                audio.pause();
-                icon.innerHTML = '<i data-lucide="play-circle" class="w-6 h-6"></i>';
-            }
-            lucide.createIcons();
+        // --- UI UTILS ---
+        const isChristmas = () => {
+            const now = new Date(new Date().toLocaleString("en-US", {timeZone: "America/New_York"}));
+            return now.getMonth() === 11 && now.getDate() === 25;
         };
 
-        window.castVote = async (qId, idx, optText, isChar = false) => {
-            const btnId = `btn-${qId}-${idx}`;
-            const btn = document.getElementById(btnId);
-            const parent = document.getElementById(`options-${qId}`);
-            
-            // Play SFX
-            const sfx = document.getElementById('sfx-vote');
-            if(sfx) { sfx.volume = 0.4; sfx.play().catch(e=>{}); }
-            
-            if(btn) btn.innerHTML = `<span class="animate-pulse">SAVING...</span>`;
-            if(parent) parent.style.pointerEvents = 'none';
-
-            try {
-                // Check auth again just in case
-                if (!auth.currentUser) await signInAnonymously(auth);
-                const user = auth.currentUser;
-
-                // Correct Path: artifacts/{appId}/public/data/{collectionName}
-                const collectionName = isChar ? "character_votes" : "theory_votes";
-                const docRef = doc(db, 'artifacts', appId, 'public', 'data', collectionName, qId);
-                
-                // Update specific question
-                try {
-                    await updateDoc(docRef, {
-                        [`votes_${idx}`]: increment(1),
-                        total: increment(1)
-                    });
-                } catch (e) {
-                    const initialData = { total: 1 };
-                    initialData[`votes_${idx}`] = 1;
-                    await setDoc(docRef, initialData);
-                }
-
-                // Update GLOBAL counter
-                const statsRef = doc(db, 'artifacts', appId, 'public', 'data', 'stats', 'global_votes');
-                try {
-                    await updateDoc(statsRef, { count: increment(1) });
-                } catch(e) {
-                    await setDoc(statsRef, { count: 1 });
-                }
-
-                localStorage.setItem(`voted_${qId}`, idx);
-                renderResults(qId, isChar);
-
-            } catch (err) {
-                console.error("Vote failed:", err);
-                if(btn) btn.innerText = "ERROR";
-                // Even on error, if it's permission based, show results so user doesn't feel stuck
-                renderResults(qId, isChar);
-                if(parent) parent.style.pointerEvents = 'auto';
-            }
+        // --- SEVEN SEGMENT RENDERER ---
+        const digitMap = {
+            '0': [1,1,1,1,1,1,0], '1': [0,1,1,0,0,0,0], '2': [1,1,0,1,1,0,1],
+            '3': [1,1,1,1,0,0,1], '4': [0,1,1,0,0,1,1], '5': [1,0,1,1,0,1,1],
+            '6': [1,0,1,1,1,1,1], '7': [1,1,1,0,0,0,0], '8': [1,1,1,1,1,1,1],
+            '9': [1,1,1,1,0,1,1]
         };
 
-        window.renderResults = async (qId, isChar) => {
-            const resultsArea = document.getElementById(`results-${qId}`);
-            const optionsArea = document.getElementById(`options-${qId}`);
-
-            if(optionsArea) optionsArea.classList.add('hidden');
-            if(resultsArea) resultsArea.classList.remove('hidden');
-
-            const collectionName = isChar ? "character_votes" : "theory_votes";
-            const docRef = doc(db, 'artifacts', appId, 'public', 'data', collectionName, qId);
-            
-            // Allow immediate display if we just voted locally, otherwise fetch
-            let data = { total: 0 };
-            try {
-                const snap = await getDoc(docRef);
-                if (snap.exists()) data = snap.data();
-            } catch(e) { console.log("Read error (expected if offline/no-perm):", e); }
-
-            const total = data.total || 0;
-            
-            let options = [];
-            if (isChar) {
-                options = ["Lives", "Dies"];
-            } else {
-                const q = theoryQuestions.find(t => t.id === qId);
-                options = q ? q.options : [];
-            }
-
-            let html = `<div class="space-y-2 mt-2">`;
-            options.forEach((opt, idx) => {
-                const count = data[`votes_${idx}`] || 0;
-                const percent = total > 0 ? Math.round((count / total) * 100) : 0;
-                const userVote = localStorage.getItem(`voted_${qId}`);
-                const isUserVote = userVote == idx;
-                
-                let barColor = "bg-gray-700";
-                if (isChar) {
-                    barColor = idx === 0 ? "bg-green-600" : "bg-red-700";
-                } else {
-                    barColor = "bg-netflix-red";
-                }
-
-                html += `
-                    <div class="text-[10px] md:text-xs font-mono">
-                        <div class="flex justify-between mb-1">
-                            <span class="${isUserVote ? 'text-white font-bold' : 'text-gray-400'}">
-                                ${opt}
-                            </span>
-                            <span class="text-gray-400">${percent}%</span>
-                        </div>
-                        <div class="w-full bg-gray-900 rounded-full h-1.5 md:h-2 overflow-hidden border border-gray-800">
-                            <div class="${barColor} h-full rounded-full poll-bar-fill animate-barber transition-all duration-1000" style="width: ${percent}%"></div>
-                        </div>
-                    </div>
-                `;
-            });
-            html += `</div>`;
-            if(resultsArea) resultsArea.innerHTML = html;
-        };
-
-        // Listen for global vote count
-        function setupGlobalListener() {
-            const statsRef = doc(db, 'artifacts', appId, 'public', 'data', 'stats', 'global_votes');
-            // Safe listener
-            try {
-                onSnapshot(statsRef, (doc) => {
-                    if(doc.exists()) {
-                        const count = doc.data().count || 0;
-                        updateSplitFlapCounter(count);
-                    }
-                }, (error) => {
-                    console.log("Global listener paused (expected if not authed yet)");
-                });
-            } catch(e) {}
-        }
-
-        // --- INITIALIZATION ---
-        document.addEventListener('DOMContentLoaded', () => {
-            initParticles();
-            initCountdown();
-            renderTheories();
-            renderDeathPool();
-            checkChristmas();
-        });
-
-        // --- DOM RENDERERS ---
-
-        function renderTheories() {
-            const container = document.getElementById('theories-container');
-            theoryQuestions.forEach(q => {
-                const hasVoted = localStorage.getItem(`voted_${q.id}`);
-                const div = document.createElement('div');
-                div.className = 'glass-card rounded-xl p-6 relative overflow-hidden group';
-                div.id = `card-${q.id}`;
-                div.innerHTML = `
-                    <div class="absolute top-0 right-0 p-4 opacity-10 group-hover:opacity-30 transition">
-                        <i data-lucide="tv" class="w-12 h-12 text-netflix-red"></i>
-                    </div>
-                    <h3 class="text-lg md:text-xl font-stranger text-red-500 mb-4 tracking-wider">${q.question}</h3>
-                    
-                    <div id="options-${q.id}" class="${hasVoted ? 'hidden' : ''} grid gap-2">
-                        ${q.options.map((opt, idx) => `
-                            <button id="btn-${q.id}-${idx}" 
-                                onclick="castVote('${q.id}', ${idx}, '${opt.replace(/'/g, "\\'")}', false)"
-                                class="w-full text-left p-2 rounded bg-gray-900/50 hover:bg-netflix-red/20 border border-gray-700 hover:border-red-500 transition-all font-mono text-sm text-gray-300 hover:text-white flex justify-between items-center group-btn">
-                                <span>${opt}</span>
-                            </button>
-                        `).join('')}
-                    </div>
-                    
-                    <div id="results-${q.id}" class="${hasVoted ? '' : 'hidden'}"></div>
-                `;
-                container.appendChild(div);
-                if (hasVoted) renderResults(q.id, false);
-            });
-            lucide.createIcons();
-        }
-
-        function renderDeathPool() {
-            const container = document.getElementById('death-pool-grid');
-            characters.forEach((char, index) => {
-                const id = `char_${char.replace(/\s+/g, '_').toLowerCase()}`;
-                const hasVoted = localStorage.getItem(`voted_${id}`);
-
-                const div = document.createElement('div');
-                div.className = 'death-pool-card rounded-lg p-3 border border-gray-800 hover:border-gray-600 transition flex flex-col justify-between';
-                div.id = `card-${id}`;
-                
-                div.innerHTML = `
-                    <div class="flex justify-between items-center mb-2">
-                        <h4 class="font-bold text-sm text-gray-300 truncate">${char}</h4>
-                        ${index < 3 ? '<span class="text-[10px] bg-red-900/50 text-red-200 px-1 rounded">HOT</span>' : ''}
-                    </div>
-
-                    <div id="options-${id}" class="${hasVoted ? 'hidden' : ''} grid grid-cols-2 gap-2">
-                        <button id="btn-${id}-0" onclick="castVote('${id}', 0, 'Lives', true)" 
-                            class="py-1 bg-gray-800 hover:bg-green-900/50 hover:text-green-400 text-gray-500 rounded text-[10px] font-bold transition border border-gray-700">
-                            LIVES
-                        </button>
-                        <button id="btn-${id}-1" onclick="castVote('${id}', 1, 'Dies', true)" 
-                            class="py-1 bg-gray-800 hover:bg-red-900/50 hover:text-red-400 text-gray-500 rounded text-[10px] font-bold transition border border-gray-700">
-                            DIES
-                        </button>
-                    </div>
-
-                    <div id="results-${id}" class="${hasVoted ? '' : 'hidden'}"></div>
-                `;
-                container.appendChild(div);
-                if (hasVoted) renderResults(id, true);
-            });
-        }
-
-        // --- VISUAL & LOGIC ---
-
-        function checkChristmas() {
-            const now = new Date();
-            const estString = now.toLocaleString("en-US", {timeZone: "America/New_York"});
-            const estDate = new Date(estString);
-            
-            // Month is 0-indexed (11 = Dec). Date is 1-indexed.
-            const isChristmas = estDate.getMonth() === 11 && estDate.getDate() === 25; 
-            
-            if(isChristmas) {
-                document.getElementById('joyce-lights').style.display = 'block';
-            }
-        }
-
-        function initParticles() {
-            const container = document.getElementById('particles-container');
-            container.innerHTML = '';
-            const isUpsideDown = document.body.classList.contains('upside-down-mode');
-            const particleCount = isUpsideDown ? 60 : 40;
-            
-            for(let i=0; i<particleCount; i++) {
-                createParticle(container, isUpsideDown);
-            }
-        }
-
-        function createParticle(container, isUpsideDown) {
-            const p = document.createElement('div');
-            
-            if(isUpsideDown) {
-                p.className = 'spore';
-                p.style.background = `rgba(${150 + Math.random()*100}, 0, 0, 0.6)`;
-            } else {
-                p.className = Math.random() > 0.5 ? 'particle' : 'particle ash';
-            }
-            
-            const size = Math.random() * 3 + 1;
-            p.style.width = `${size}px`;
-            p.style.height = `${size}px`;
-            
-            p.style.left = `${Math.random() * 100}vw`;
-            p.style.top = `${Math.random() * -10}vh`; 
-            
-            const duration = Math.random() * 5 + 5;
-            p.style.transition = `top ${duration}s linear, opacity ${duration}s ease-in, transform 3s ease-in-out`;
-            
-            container.appendChild(p);
-            
-            setTimeout(() => {
-                p.style.top = '105vh';
-                p.style.opacity = '0';
-                p.style.transform = `translateX(${Math.random() * 50 - 25}px)`;
-            }, 100);
-
-            setTimeout(() => {
-                p.remove();
-                createParticle(container, isUpsideDown);
-            }, duration * 1000);
-        }
-
-        function initCountdown() {
-            // Set for JULY 2026 (Future date relative to Dec 2025)
-            const targetDate = new Date("July 15, 2026 00:00:00").getTime();
-            
-            function update() {
-                const now = new Date().getTime();
-                const distance = targetDate - now;
-
-                if (distance < 0) {
-                    updateFlap('days', '00');
-                    updateFlap('hours', '00');
-                    updateFlap('minutes', '00');
-                    return;
-                }
-
-                const days = Math.floor(distance / (1000 * 60 * 60 * 24));
-                const hours = Math.floor((distance % (1000 * 60 * 60 * 24)) / (1000 * 60 * 60));
-                const minutes = Math.floor((distance % (1000 * 60 * 60)) / (1000 * 60));
-
-                updateFlap('days', days);
-                updateFlap('hours', hours);
-                updateFlap('minutes', minutes);
-            }
-            
-            setInterval(update, 1000);
-            update();
-        }
-
-        function updateFlap(id, value) {
-            const el = document.getElementById(`flap-${id}`);
-            if(!el) return;
-            const valStr = value < 10 ? `0${value}` : value;
-            if(el.innerText !== valStr.toString()) {
-                el.innerText = valStr;
-                el.classList.remove('animate-pulse');
-                void el.offsetWidth; // trigger reflow
-                el.classList.add('animate-pulse');
-            }
-        }
-
-        function updateSplitFlapCounter(count) {
-            const container = document.getElementById('global-vote-counter');
-            if(!container) return;
-            
-            // Format to 6 digits
-            const str = count.toString().padStart(6, '0');
-            const digits = str.split('');
-            
-            // Generate HTML for each digit
-            container.innerHTML = digits.map(d => `
-                <div class="flap-unit w-6 h-10 md:w-8 md:h-12 text-lg md:text-2xl leading-[2.5rem] md:leading-[3rem] border border-gray-700 bg-black text-red-500 font-arcade">
-                    ${d}
-                    <div class="flap-line"></div>
+        function drawSegment(id, value) {
+            const container = document.getElementById(id);
+            if (!container) return;
+            const str = String(value).padStart(container.dataset.len || 2, '0');
+            container.innerHTML = str.split('').map(digit => `
+                <div class="segment-digit">
+                    ${[0,1,2,3,4,5,6].map(i => `
+                        <div class="seg seg-${i} ${digitMap[digit][i] ? 'on' : ''}"></div>
+                    `).join('')}
                 </div>
             `).join('');
         }
 
+        function runCountdown() {
+            const now = new Date();
+            const diff = getTargetDate() - now;
+            if (diff <= 0) return;
+
+            const d = Math.floor(diff / (1000 * 60 * 60 * 24));
+            const h = Math.floor((diff % (1000 * 60 * 60 * 24)) / (1000 * 60 * 60));
+            const m = Math.floor((diff % (1000 * 60 * 60)) / (1000 * 60));
+            const s = Math.floor((diff % (1000 * 60)) / 1000);
+
+            drawSegment('seg-d', d);
+            drawSegment('seg-h', h);
+            drawSegment('seg-m', m);
+            drawSegment('seg-s', s);
+        }
+
+        window.castVote = async (qid, idx) => {
+            const docRef = doc(db, "votes", qid);
+            try {
+                const snap = await getDoc(docRef);
+                if (!snap.exists()) await setDoc(docRef, { total: 0 });
+                await updateDoc(docRef, { [`votes_${idx}`]: increment(1), total: increment(1) });
+                localStorage.setItem(`voted_${qid}`, 'true');
+                showResults(qid);
+                updateGlobalCounter();
+            } catch (e) { console.error(e); }
+        };
+
+        async function showResults(qid) {
+            const optCont = document.getElementById(`opts-${qid}`);
+            const resCont = document.getElementById(`res-${qid}`);
+            if(!optCont || !resCont) return;
+            optCont.classList.add('hidden');
+            resCont.classList.remove('hidden');
+
+            onSnapshot(doc(db, "votes", qid), (doc) => {
+                if (doc.exists()) {
+                    const data = doc.data();
+                    const total = data.total || 1;
+                    const q = predictionQuestions.find(x => x.id === qid);
+                    resCont.innerHTML = q.options.map((opt, i) => {
+                        const count = data[`votes_${i}`] || 0;
+                        const pct = Math.round((count / total) * 100);
+                        return `
+                            <div class="mb-2">
+                                <div class="flex justify-between text-[10px] mb-1"><span>${opt}</span><span>${pct}%</span></div>
+                                <div class="h-3 bg-zinc-800 rounded-sm overflow-hidden border border-zinc-700">
+                                    <div class="bar-stripe h-full bg-red-600 transition-all duration-700" style="width: ${pct}%"></div>
+                                </div>
+                            </div>`;
+                    }).join('');
+                }
+            });
+        }
+
+        async function updateGlobalCounter() {
+            let grandTotal = 0;
+            for (const q of predictionQuestions) {
+                const snap = await getDoc(doc(db, "votes", q.id));
+                if (snap.exists()) grandTotal += snap.data().total || 0;
+            }
+            drawSegment('total-votes', grandTotal);
+        }
+
+        window.toggleWorld = () => {
+            document.body.classList.toggle('upside-down');
+        };
+
+        window.onload = () => {
+            setTimeout(() => {
+                document.getElementById('intro-overlay').classList.add('finished');
+                document.body.classList.add('intro-complete');
+            }, 5500);
+
+            if (isChristmas()) document.body.classList.add('christmas-mode');
+
+            const container = document.getElementById('poll-grid');
+            predictionQuestions.forEach(q => {
+                const card = document.createElement('div');
+                card.className = "poll-card p-4 glass-panel rounded-lg hover:border-red-600 transition-all";
+                card.innerHTML = `
+                    <h4 class="text-[11px] font-bold mb-3 tracking-widest text-zinc-400 uppercase">${q.question}</h4>
+                    <div id="opts-${q.id}" class="grid grid-cols-2 gap-2">
+                        ${q.options.map((opt, i) => `
+                            <button onclick="castVote('${q.id}', ${i})" class="py-2 px-1 border border-zinc-700 hover:border-red-600 text-[10px] rounded uppercase">
+                                ${opt}
+                            </button>
+                        `).join('')}
+                    </div>
+                    <div id="res-${q.id}" class="hidden"></div>
+                `;
+                container.appendChild(card);
+                if (localStorage.getItem(`voted_${q.id}`)) showResults(q.id);
+            });
+
+            setInterval(runCountdown, 1000);
+            updateGlobalCounter();
+        };
     </script>
 
-    <!-- UI STRUCTURE -->
+    <style>
+        :root { --red: #ff0000; --glow: rgba(255, 0, 0, 0.6); --bg: #080808; }
+        body { background: var(--bg); color: #fff; font-family: 'Roboto Mono', monospace; overflow-x: hidden; }
+        .benguiat { font-family: 'ITC Benguiat', serif; }
 
-    <!-- Joyce's Lights (Hidden unless Xmas) -->
-    <div id="joyce-lights" class="lights-container">
-        <div class="wire"></div>
-        <script>
-            const colors = ['#f00', '#0f0', '#00f', '#ff0', '#f0f'];
-            const container = document.querySelector('.lights-container .wire');
-            if(container) {
-                let html = '';
-                for(let i=0; i<20; i++) {
-                    const color = colors[i % colors.length];
-                    const left = (i * 5) + 2;
-                    const rotate = (i % 2 === 0 ? 10 : -10) + (Math.random() * 10 - 5);
-                    html += `
-                        <div class="bulb-holder" style="left: ${left}%; transform: rotate(${rotate}deg)">
-                            <div class="socket"></div>
-                            <div class="bulb-c9" style="background: ${color}; color: ${color}; animation: flicker ${Math.random()*2 + 1}s infinite alternate;"></div>
-                        </div>
-                    `;
-                }
-                document.write(`<div style="position:absolute; width:100%; height:100%; top:0; left:0; pointer-events:none;">${html}</div>`);
-            }
-        </script>
-    </div>
+        /* Intro Sequence */
+        #intro-overlay {
+            position: fixed; inset: 0; background: #000; z-index: 1000;
+            display: flex; align-items: center; justify-content: center;
+            transition: transform 1.5s cubic-bezier(0.7, 0, 0.3, 1), opacity 1s;
+        }
+        #intro-overlay.finished {
+            transform: translateY(-85vh) scale(0.2);
+            opacity: 0; pointer-events: none;
+        }
 
-    <!-- Particles -->
-    <div id="particles-container"></div>
-    
-    <!-- Audio Control (Fixed Bottom Right) -->
-    <div class="fixed bottom-4 right-4 z-50">
-        <button onclick="toggleMusic()" class="bg-black/80 border border-gray-700 text-gray-400 p-2 rounded-full hover:text-white hover:border-red-500 transition-colors" id="music-icon">
-             <i data-lucide="play-circle" class="w-6 h-6"></i>
-        </button>
-    </div>
-
-    <main class="relative z-10 container mx-auto px-4 py-8 pb-32 max-w-5xl">
+        .intro-text-wrap { position: relative; width: 100vw; height: 100vh; display: flex; align-items: center; justify-content: center; overflow: hidden; }
+        .intro-letter {
+            position: absolute; color: var(--red); font-family: 'ITC Benguiat'; font-size: 8rem;
+            text-transform: uppercase; opacity: 0; filter: blur(20px); text-shadow: 0 0 20px var(--red);
+        }
         
-        <!-- HEADER -->
-        <header class="text-center mb-8 mt-12 relative">
-            <h1 class="text-5xl md:text-8xl font-bold stranger-title text-netflix-red mb-2 tracking-tighter animate-intro" 
-                onclick="toggleUpsideDown()" title="Click to flip to the Upside Down">
-                STRANGER<br>THINGS 5
-            </h1>
-            
-            <div class="flex flex-col items-center justify-center gap-4 mt-8">
-                <!-- Global Vote Counter -->
+        /* Individual letter paths */
+        .l1 { animation: flyIn 5s forwards; transform: translate(-300%, -200%) scale(4); }
+        .l2 { animation: flyIn 5s 0.2s forwards; transform: translate(300%, 200%) scale(4); }
+        .l3 { animation: flyIn 5s 0.4s forwards; transform: translate(-400%, 0) scale(4); }
+        .l4 { animation: flyIn 5s 0.6s forwards; transform: translate(0, -400%) scale(4); }
+        .l5 { animation: flyIn 5s 0.8s forwards; transform: translate(400%, -100%) scale(4); }
+
+        @keyframes flyIn {
+            0% { opacity: 0; filter: blur(20px); }
+            30% { opacity: 1; filter: blur(2px); }
+            100% { opacity: 1; filter: blur(0); transform: translate(0,0) scale(1); }
+        }
+
+        /* 7-Segment UI */
+        .segment-digit { position: relative; width: 24px; height: 42px; margin: 0 2px; }
+        .seg { position: absolute; background: #220000; border-radius: 10px; box-shadow: 0 0 2px #000; transition: background 0.2s; }
+        .seg.on { background: #ff1111; box-shadow: 0 0 10px #ff0000; }
+        
+        /* Segment positions */
+        .seg-0 { top: 0; left: 4px; right: 4px; height: 4px; } /* top */
+        .seg-1 { top: 4px; right: 0; bottom: 50%; width: 4px; margin-bottom: 2px; } /* top-right */
+        .seg-2 { top: 50%; right: 0; bottom: 4px; width: 4px; margin-top: 2px; } /* bottom-right */
+        .seg-3 { bottom: 0; left: 4px; right: 4px; height: 4px; } /* bottom */
+        .seg-4 { top: 50%; left: 0; bottom: 4px; width: 4px; margin-top: 2px; } /* bottom-left */
+        .seg-5 { top: 4px; left: 0; bottom: 50%; width: 4px; margin-bottom: 2px; } /* top-left */
+        .seg-6 { top: calc(50% - 2px); left: 4px; right: 4px; height: 4px; } /* middle */
+
+        /* VHS Overlay */
+        .vhs-overlay {
+            position: fixed; inset: 0; pointer-events: none; z-index: 999;
+            background: linear-gradient(rgba(18, 16, 16, 0) 50%, rgba(0, 0, 0, 0.1) 50%), linear-gradient(90deg, rgba(255, 0, 0, 0.03), rgba(0, 255, 0, 0.01), rgba(0, 0, 255, 0.03));
+            background-size: 100% 3px, 3px 100%;
+            opacity: 0.6; animation: vhsJitter 0.2s infinite;
+        }
+        @keyframes vhsJitter {
+            0% { transform: translate(0,0); }
+            50% { transform: translate(1px, 0.5px); }
+            100% { transform: translate(-0.5px, -1px); }
+        }
+
+        /* Upside Down */
+        body.upside-down { filter: invert(1) hue-rotate(180deg) brightness(0.8); background: #eee; }
+
+        /* General Styles */
+        .glass-panel { background: rgba(20, 20, 20, 0.7); border: 1px solid rgba(255,255,255,0.05); }
+        .bar-stripe {
+            background-image: linear-gradient(45deg, rgba(255,255,255,0.1) 25%, transparent 25%, transparent 50%, rgba(255,255,255,0.1) 50%, rgba(255,255,255,0.1) 75%, transparent 75%, transparent);
+            background-size: 15px 15px; animation: moveStripes 1s linear infinite;
+        }
+        @keyframes moveStripes { from { background-position: 0 0; } to { background-position: 30px 0; } }
+
+        /* Christmas Lights */
+        .light-string { display: flex; justify-content: center; gap: 1.5rem; padding: 10px; opacity: 0; }
+        .christmas-mode .light-string { opacity: 1; }
+        .light { width: 10px; height: 18px; border-radius: 50% 50% 40% 40%; animation: glow 1s infinite alternate; }
+        @keyframes glow { from { filter: brightness(0.5) blur(1px); } to { filter: brightness(1.8) blur(3px); box-shadow: 0 0 10px currentColor; } }
+    </style>
+</head>
+<body>
+
+    <div class="vhs-overlay"></div>
+
+    <!-- Intro -->
+    <div id="intro-overlay">
+        <div class="intro-text-wrap benguiat font-bold">
+            <span class="intro-letter l1" style="left: 20%">S</span>
+            <span class="intro-letter l2" style="left: 35%">T</span>
+            <span class="intro-letter l3" style="left: 50%">R</span>
+            <span class="intro-letter l4" style="left: 65%">A</span>
+            <span class="intro-letter l5" style="left: 80%">5</span>
+        </div>
+    </div>
+
+    <!-- Christmas Lights -->
+    <div class="light-string">
+        <div class="light bg-red-500" style="animation-delay: 0.1s"></div>
+        <div class="light bg-yellow-400" style="animation-delay: 0.3s"></div>
+        <div class="light bg-blue-500" style="animation-delay: 0.5s"></div>
+        <div class="light bg-green-500" style="animation-delay: 0.2s"></div>
+        <div class="light bg-purple-500" style="animation-delay: 0.4s"></div>
+        <div class="light bg-red-500" style="animation-delay: 0.6s"></div>
+    </div>
+
+    <main class="max-w-6xl mx-auto px-6 py-8">
+        
+        <!-- Modern-80s Header -->
+        <div class="flex flex-col md:flex-row justify-between items-start md:items-center mb-12 gap-8">
+            <div>
+                <h1 class="benguiat text-5xl text-red-600 tracking-tighter leading-none glow-text">STRANGER<br>PREDICTIONS</h1>
+                <p class="text-[9px] uppercase tracking-[0.4em] text-zinc-500 mt-3 font-bold">Terminal Interface v5.0.4</p>
+            </div>
+
+            <!-- 7 Segment Countdown -->
+            <div class="flex gap-4 bg-black/40 p-4 rounded-xl border border-zinc-800">
                 <div class="flex flex-col items-center">
-                    <span class="text-[10px] text-gray-500 font-mono tracking-widest uppercase mb-1">Global Predictions</span>
-                    <div id="global-vote-counter" class="flex gap-1 shadow-[0_0_15px_rgba(255,0,0,0.3)]">
-                        <!-- Initial 000000 -->
-                        <div class="flap-unit w-8 h-12 font-arcade pt-2">0<div class="flap-line"></div></div>
-                        <div class="flap-unit w-8 h-12 font-arcade pt-2">0<div class="flap-line"></div></div>
-                        <div class="flap-unit w-8 h-12 font-arcade pt-2">0<div class="flap-line"></div></div>
-                        <div class="flap-unit w-8 h-12 font-arcade pt-2">0<div class="flap-line"></div></div>
-                        <div class="flap-unit w-8 h-12 font-arcade pt-2">0<div class="flap-line"></div></div>
-                        <div class="flap-unit w-8 h-12 font-arcade pt-2">0<div class="flap-line"></div></div>
-                    </div>
+                    <div id="seg-d" class="flex" data-len="2"></div>
+                    <span class="text-[8px] text-zinc-600 mt-2 font-bold">DAYS</span>
+                </div>
+                <div class="text-red-900 self-center text-xl mt-[-10px]">:</div>
+                <div class="flex flex-col items-center">
+                    <div id="seg-h" class="flex" data-len="2"></div>
+                    <span class="text-[8px] text-zinc-600 mt-2 font-bold">HOURS</span>
+                </div>
+                <div class="text-red-900 self-center text-xl mt-[-10px]">:</div>
+                <div class="flex flex-col items-center">
+                    <div id="seg-m" class="flex" data-len="2"></div>
+                    <span class="text-[8px] text-zinc-600 mt-2 font-bold">MINS</span>
                 </div>
             </div>
-        </header>
 
-        <!-- COUNTDOWN -->
-        <section class="mb-16 flex justify-center">
-            <div class="bg-black/40 p-4 md:p-6 rounded-xl border border-gray-800 backdrop-blur-sm shadow-2xl relative overflow-hidden group">
-                <div class="absolute inset-0 bg-red-900/10 opacity-0 group-hover:opacity-100 transition duration-500"></div>
-                <div class="text-center text-xs text-gray-500 mb-4 font-mono tracking-widest uppercase">Est. Time Until The End</div>
-                <div class="flex gap-4 md:gap-8 relative z-10">
-                    <div class="text-center">
-                        <div id="flap-days" class="flap-unit mb-2 text-3xl md:text-4xl h-12 md:h-16 w-12 md:w-20 leading-[3rem] md:leading-[4rem] font-arcade text-gray-200">00<div class="flap-line"></div></div>
-                        <span class="text-[10px] text-gray-500">DAYS</span>
-                    </div>
-                    <div class="text-center">
-                        <div id="flap-hours" class="flap-unit mb-2 text-3xl md:text-4xl h-12 md:h-16 w-12 md:w-20 leading-[3rem] md:leading-[4rem] font-arcade text-gray-200">00<div class="flap-line"></div></div>
-                        <span class="text-[10px] text-gray-500">HRS</span>
-                    </div>
-                    <div class="text-center">
-                        <div id="flap-minutes" class="flap-unit mb-2 text-3xl md:text-4xl h-12 md:h-16 w-12 md:w-20 leading-[3rem] md:leading-[4rem] font-arcade text-gray-200">00<div class="flap-line"></div></div>
-                        <span class="text-[10px] text-gray-500">MINS</span>
-                    </div>
+            <div class="flex flex-col items-end gap-3">
+                <button onclick="toggleWorld()" class="px-5 py-2 border border-red-600 text-red-600 text-[9px] font-bold tracking-[0.2em] rounded-sm hover:bg-red-600 hover:text-black transition-all">
+                    TOGGLE UPSIDE DOWN
+                </button>
+                <!-- Radio -->
+                <div class="flex items-center gap-2 bg-zinc-900 px-3 py-1 rounded-full border border-zinc-800">
+                    <span class="w-2 h-2 bg-green-500 rounded-full animate-pulse"></span>
+                    <span class="text-[9px] text-zinc-400">RADIO: SYNTH_WAVE_FM</span>
+                    <audio id="bg-audio" loop>
+                        <source src="https://stream.nightride.fm/nightride.mp3" type="audio/mpeg">
+                    </audio>
+                    <button onclick="document.getElementById('bg-audio').paused ? document.getElementById('bg-audio').play() : document.getElementById('bg-audio').pause()" class="text-[10px] text-white ml-2">⏵/⏸</button>
                 </div>
             </div>
-        </section>
+        </div>
 
-        <!-- BIG THEORIES -->
-        <section class="mb-16">
-            <div class="flex items-center gap-4 mb-6">
-                <div class="h-px bg-gray-800 flex-1"></div>
-                <h2 class="text-xl font-mono text-gray-400 uppercase tracking-widest text-shadow-sm">Theories</h2>
-                <div class="h-px bg-gray-800 flex-1"></div>
+        <!-- Stats Bar -->
+        <div class="grid grid-cols-1 md:grid-cols-3 gap-4 mb-10">
+            <div class="glass-panel p-4 rounded-lg border-l-4 border-l-red-600 flex justify-between items-center">
+                <span class="text-[10px] text-zinc-500 uppercase font-bold">Global Archive Entries</span>
+                <div id="total-votes" class="flex" data-len="4"></div>
             </div>
-            
-            <div id="theories-container" class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
-                <!-- Injected via JS -->
+            <div class="glass-panel p-4 rounded-lg flex justify-between items-center">
+                <span class="text-[10px] text-zinc-500 uppercase font-bold">System Status</span>
+                <span class="text-[10px] text-red-500 tracking-widest font-bold">STABLE // HAWKINS_NET</span>
             </div>
-        </section>
+            <div class="glass-panel p-4 rounded-lg flex justify-between items-center">
+                <span class="text-[10px] text-zinc-500 uppercase font-bold">Location</span>
+                <span class="text-[10px] text-white">HAWKINS, INDIANA</span>
+            </div>
+        </div>
 
-        <!-- CHARACTER DEATH POOL -->
-        <section>
-            <div class="flex items-center gap-4 mb-6">
-                <div class="h-px bg-gray-800 flex-1"></div>
-                <h2 class="text-xl font-mono text-red-500 uppercase tracking-widest flex items-center gap-2" style="text-shadow: 0 0 10px rgba(220, 38, 38, 0.5)">
-                    <i data-lucide="skull" class="w-5 h-5"></i> Death Pool
-                </h2>
-                <div class="h-px bg-gray-800 flex-1"></div>
-            </div>
-            
-            <div id="death-pool-grid" class="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4">
-                <!-- Injected via JS -->
-            </div>
-        </section>
+        <!-- Poll Grid -->
+        <div id="poll-grid" class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4"></div>
 
-        <!-- FOOTER -->
-        <footer class="mt-24 text-center border-t border-gray-900 pt-8">
-            <p class="font-stranger text-2xl text-gray-800 mb-4 opacity-50">FRIENDS DON'T LIE</p>
-            <div class="text-xs text-gray-600 font-mono space-y-2">
-                <p>Created by a fan. Not affiliated with Netflix or the Duffer Brothers.</p>
-                <p>Hawkins, Indiana • 1987</p>
+        <!-- Footer -->
+        <footer class="mt-20 border-t border-zinc-900 pt-10 text-[9px] text-zinc-600 tracking-[0.3em] uppercase pb-12">
+            <div class="flex flex-col md:flex-row justify-between items-center gap-4">
+                <div class="text-center md:text-left">
+                    <p>Unauthorized access is strictly prohibited</p>
+                    <p class="mt-1">Fan made on <span class="text-red-800">strangerthings.space</span></p>
+                </div>
+                <div class="flex gap-6">
+                    <a href="#" class="hover:text-red-600 transition-colors">Lab Protocols</a>
+                    <a href="#" class="hover:text-red-600 transition-colors">Clearance Level 4</a>
+                </div>
             </div>
         </footer>
-
     </main>
 
 </body>
