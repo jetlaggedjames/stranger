@@ -3,240 +3,841 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Stranger Things 5: The Final Predictions</title>
+    <title>Stranger Things 5: The Final Watch</title>
     
-    <!-- Google Fonts for that Retro 80s Look -->
-    <link href="https://fonts.googleapis.com/css2?family=Benguiat&family=Roboto+Mono:wght@400;700&display=swap" rel="stylesheet">
+    <!-- Google Fonts -->
+    <link href="https://fonts.googleapis.com/css2?family=Benguiat:wght@400;700&family=Roboto+Mono:wght@400;700&family=Press+Start+2P&display=swap" rel="stylesheet">
     
-    <!-- Tailwind CSS for styling -->
+    <!-- Tailwind CSS -->
     <script src="https://cdn.tailwindcss.com"></script>
 
-    <!-- Firebase SDKs -->
-    <script type="module">
-        import { initializeApp } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-app.js";
-        import { getFirestore, doc, getDoc, updateDoc, setDoc, increment, arrayUnion } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js";
-        import { getAnalytics } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-analytics.js";
+    <!-- Lucide Icons -->
+    <script src="https://unpkg.com/lucide@latest"></script>
 
-        // --- FIREBASE CONFIGURATION ---
-        const firebaseConfig = {
-            apiKey: "AIzaSyAqEtbev8LIQXbs9y-SS1Wb4ETSAkne0NY",
-            authDomain: "stranger-predictions.firebaseapp.com",
-            projectId: "stranger-predictions",
-            storageBucket: "stranger-predictions.firebasestorage.app",
-            messagingSenderId: "132076207960",
-            appId: "1:132076207960:web:b15f98fe8953b7106eaf2d",
-            measurementId: "G-13XEZ9XJRK"
-        };
-
-        // Initialize Firebase
-        const app = initializeApp(firebaseConfig);
-        const db = getFirestore(app);
-        
-        // Initialize Analytics since ID is present
-        if (firebaseConfig.measurementId) {
-            const analytics = getAnalytics(app);
-        }
-
-        // --- PREDICTION DATA ---
-        const predictionQuestions = [
-            {
-                id: "villain",
-                question: "Who is the ULTIMATE villain?",
-                options: ["Vecna (Henry Creel)", " The Mind Flayer (Itself)", "Evil Will Byers", "Dr. Brenner Returns"]
-            },
-            {
-                id: "death",
-                question: "Who is most likely to die?",
-                options: ["Steve Harrington", "Eleven", "Will Byers", "Jonathan Byers", "Nobody (Happy Ending)"]
-            },
-            {
-                id: "max",
-                question: "What happens to Max?",
-                options: ["She wakes up fully healed", "She wakes up blind", "She becomes a vessel for Vecna", "She doesn't make it"]
-            },
-            {
-                id: "eddie",
-                question: "Does Eddie Munson return?",
-                options: ["No, he's gone", "Yes, as a memory/flashback", "Yes, as 'Kas the Bloody-Handed' (Vampire)"]
-            }
-        ];
-
-        // --- LOGIC ---
-        
-        // 1. Render the questions
-        function renderQuestions() {
-            const container = document.getElementById('questions-container');
-            
-            predictionQuestions.forEach(q => {
-                const card = document.createElement('div');
-                card.className = "bg-gray-900 border-2 border-red-900 rounded-lg p-6 mb-8 shadow-[0_0_15px_rgba(220,38,38,0.3)]";
-                card.innerHTML = `
-                    <h3 class="text-2xl font-['Benguiat'] text-red-500 mb-4 tracking-widest uppercase text-center drop-shadow-md">${q.question}</h3>
-                    <div id="options-${q.id}" class="grid gap-3">
-                        ${q.options.map((opt, index) => `
-                            <button onclick="castVote('${q.id}', '${index}', '${opt.replace(/'/g, "\\'")}')" 
-                                    class="vote-btn hover:bg-red-900/50 border border-red-800 text-gray-300 py-3 px-4 rounded text-left transition-all duration-300 font-['Roboto_Mono'] group">
-                                <span class="group-hover:text-white">${opt}</span>
-                            </button>
-                        `).join('')}
-                    </div>
-                    <div id="results-${q.id}" class="hidden mt-4 space-y-3 font-['Roboto_Mono']">
-                        <!-- Results will be injected here -->
-                    </div>
-                `;
-                container.appendChild(card);
-            });
-        }
-
-        // 2. Handle Voting
-        window.castVote = async (questionId, optionIndex, optionText) => {
-            // Check local storage to see if they already voted on this
-            if (localStorage.getItem(`voted_${questionId}`)) {
-                alert("You already voted on this! Showing results...");
-                showResults(questionId);
-                return;
-            }
-
-            // UI Feedback
-            const btnContainer = document.getElementById(`options-${questionId}`);
-            btnContainer.classList.add('opacity-50', 'pointer-events-none');
-
-            try {
-                // Reference to the specific question document
-                const docRef = doc(db, "votes", questionId);
-                
-                // Get current state to see if doc exists, if not create it
-                const docSnap = await getDoc(docRef);
-                
-                if (!docSnap.exists()) {
-                    // Initialize if it doesn't exist
-                    await setDoc(docRef, { total: 0 });
+    <!-- Tailwind Config -->
+    <script>
+        tailwind.config = {
+            theme: {
+                extend: {
+                    fontFamily: {
+                        'stranger': ['Benguiat', 'serif'],
+                        'mono': ['Roboto Mono', 'monospace'],
+                        'arcade': ['"Press Start 2P"', 'cursive'],
+                    },
+                    colors: {
+                        'netflix-red': '#E50914',
+                        'vecna-red': '#8B0000',
+                        'upside-dark': '#0a0a0a',
+                        'neon-blue': '#00f3ff',
+                    },
+                    animation: {
+                        'barber': 'barber 1s linear infinite',
+                        'intro': 'intro 4s ease-out forwards',
+                        'flicker': 'flicker 2s infinite',
+                        'scanline': 'scanline 8s linear infinite',
+                    },
+                    keyframes: {
+                        barber: {
+                            '0%': { backgroundPosition: '40px 0' },
+                            '100%': { backgroundPosition: '0 0' },
+                        },
+                        intro: {
+                            '0%': { transform: 'scale(15)', opacity: '0', letterSpacing: '2rem' },
+                            '100%': { transform: 'scale(1)', opacity: '1', letterSpacing: '-0.05em' },
+                        },
+                        flicker: {
+                            '0%, 19%, 21%, 23%, 25%, 54%, 56%, 100%': { opacity: '1' },
+                            '20%, 24%, 55%': { opacity: '0.8' },
+                        },
+                        scanline: {
+                            '0%': { transform: 'translateY(-100%)' },
+                            '100%': { transform: 'translateY(100%)' }
+                        }
+                    }
                 }
-
-                // Atomic increment of the vote count
-                await updateDoc(docRef, {
-                    [`votes_${optionIndex}`]: increment(1),
-                    total: increment(1)
-                });
-
-                // Save to local storage so they can't spam
-                localStorage.setItem(`voted_${questionId}`, 'true');
-
-                // Show results
-                await showResults(questionId);
-
-            } catch (error) {
-                console.error("Error voting:", error);
-                alert("Something went wrong with the Upside Down... (Check console if you are the dev)");
-                btnContainer.classList.remove('opacity-50', 'pointer-events-none');
-            }
-        };
-
-        // 3. Show Results
-        async function showResults(questionId) {
-            const optionsContainer = document.getElementById(`options-${questionId}`);
-            const resultsContainer = document.getElementById(`results-${questionId}`);
-            
-            // Hide buttons, show results area
-            optionsContainer.style.display = 'none';
-            resultsContainer.classList.remove('hidden');
-            resultsContainer.innerHTML = '<p class="text-red-400 animate-pulse">Fetching from the Upside Down...</p>';
-
-            const docRef = doc(db, "votes", questionId);
-            const docSnap = await getDoc(docRef);
-
-            if (docSnap.exists()) {
-                const data = docSnap.data();
-                const total = data.total || 1;
-                const questionData = predictionQuestions.find(q => q.id === questionId);
-
-                let html = '';
-                questionData.options.forEach((opt, index) => {
-                    const count = data[`votes_${index}`] || 0;
-                    const percent = Math.round((count / total) * 100);
-                    
-                    html += `
-                        <div class="relative pt-1">
-                            <div class="flex mb-2 items-center justify-between">
-                                <span class="text-xs font-semibold inline-block text-red-200">
-                                    ${opt}
-                                </span>
-                                <span class="text-xs font-semibold inline-block text-red-200">
-                                    ${percent}% (${count} votes)
-                                </span>
-                            </div>
-                            <div class="overflow-hidden h-2 mb-4 text-xs flex rounded bg-gray-800 border border-gray-700">
-                                <div style="width:${percent}%" class="shadow-none flex flex-col text-center whitespace-nowrap text-white justify-center bg-red-700 transition-all duration-1000"></div>
-                            </div>
-                        </div>
-                    `;
-                });
-                resultsContainer.innerHTML = html;
             }
         }
-
-        // Initialize on load
-        renderQuestions();
     </script>
-    
+
     <style>
         body {
             background-color: #050505;
             color: #e5e5e5;
-            background-image: radial-gradient(circle at 50% 50%, #1a0505 0%, #000000 100%);
+            overflow-x: hidden;
+            font-family: 'Roboto Mono', monospace;
+            transition: background 1s ease;
+        }
+
+        /* --- CRT EFFECT --- */
+        .crt-overlay {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100vw;
+            height: 100vh;
+            background: linear-gradient(rgba(18, 16, 16, 0) 50%, rgba(0, 0, 0, 0.25) 50%), linear-gradient(90deg, rgba(255, 0, 0, 0.06), rgba(0, 255, 0, 0.02), rgba(0, 0, 255, 0.06));
+            background-size: 100% 2px, 3px 100%;
+            pointer-events: none;
+            z-index: 999;
+        }
+
+        .crt-flicker {
+            animation: flicker 0.15s infinite;
+            opacity: 0.9;
         }
         
-        .upside-down-text {
+        /* Scanline bar */
+        .scanline-bar {
+            width: 100%;
+            height: 100px;
+            z-index: 998;
+            background: linear-gradient(0deg, rgba(0,0,0,0) 0%, rgba(255, 255, 255, 0.05) 50%, rgba(0,0,0,0) 100%);
+            opacity: 0.1;
+            position: fixed;
+            bottom: 100%;
+            animation: scanline 10s linear infinite;
+            pointer-events: none;
+        }
+
+        /* --- BACKGROUNDS --- */
+        body.right-side-up {
+            background: radial-gradient(circle at 50% 0%, #1e293b 0%, #0f172a 40%, #000000 100%);
+        }
+
+        body.upside-down-mode {
+            background: radial-gradient(circle at 50% 0%, #450a0a 0%, #1a0505 40%, #000000 100%);
+        }
+        
+        body.upside-down-mode .crt-overlay {
+            background: linear-gradient(rgba(50, 0, 0, 0.1) 50%, rgba(0, 0, 0, 0.5) 50%);
+            background-size: 100% 4px;
+        }
+
+        /* --- TEXT EFFECTS --- */
+        .stranger-title {
             font-family: 'Benguiat', serif;
             text-shadow: 
                 0 0 5px #ff0000,
-                0 0 10px #8b0000;
+                0 0 10px #8b0000,
+                0 0 20px #000;
+            cursor: pointer;
+            transition: transform 0.8s ease-in-out, filter 0.5s ease;
+            display: inline-block;
+            white-space: nowrap;
         }
 
-        /* Floating ash particle effect container */
-        .particles {
+        .upside-down-mode .stranger-title {
+            transform: rotate(180deg);
+            filter: drop-shadow(0 0 15px #ff0000);
+        }
+
+        .upside-down-mode .glass-card {
+            border-color: #7f1d1d;
+            background: rgba(40, 0, 0, 0.4);
+        }
+
+        /* --- BARBERSHOP POLL BARS --- */
+        .poll-bar-fill {
+            background-image: linear-gradient(
+                45deg,
+                rgba(255, 255, 255, 0.15) 25%,
+                transparent 25%,
+                transparent 50%,
+                rgba(255, 255, 255, 0.15) 50%,
+                rgba(255, 255, 255, 0.15) 75%,
+                transparent 75%,
+                transparent
+            );
+            background-size: 20px 20px;
+        }
+
+        /* --- SPLIT FLAP DISPLAY --- */
+        .flap-unit {
+            position: relative;
+            background: #111;
+            border-radius: 4px;
+            color: #ddd;
+            font-family: 'Roboto Mono', monospace;
+            text-align: center;
+            box-shadow: 0 4px 6px rgba(0,0,0,0.8);
+            overflow: hidden;
+            border: 1px solid #333;
+        }
+        .flap-line {
+            position: absolute;
+            top: 50%;
+            left: 0;
+            width: 100%;
+            height: 1px;
+            background: #000;
+            z-index: 10;
+            box-shadow: 0 1px 0 rgba(255,255,255,0.1);
+        }
+
+        /* --- CARDS --- */
+        .glass-card {
+            background: rgba(20, 20, 20, 0.6);
+            backdrop-filter: blur(4px);
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            transition: all 0.3s ease;
+            box-shadow: 0 0 10px rgba(0,0,0,0.5);
+        }
+        
+        .glass-card:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 0 20px rgba(229, 9, 20, 0.2);
+            border-color: rgba(229, 9, 20, 0.5);
+        }
+
+        .death-pool-card {
+            background: rgba(10, 10, 10, 0.8);
+            border: 1px solid #333;
+        }
+        
+        /* Floating "spores" for upside down */
+        .spore {
+            position: absolute;
+            background: rgba(255, 0, 0, 0.6);
+            border-radius: 50%;
+            box-shadow: 0 0 4px #ff0000;
+        }
+        
+        .particle {
+            position: absolute;
+            background: white;
+            border-radius: 50%;
+            opacity: 0.8;
+        }
+
+        .ash {
+            background: #aaa;
+            opacity: 0.5;
+        }
+
+        /* --- JOYCE'S LIGHTS --- */
+        .lights-container {
             position: fixed;
             top: 0;
             left: 0;
             width: 100%;
-            height: 100%;
+            height: 150px;
             pointer-events: none;
-            z-index: 0;
-            background-image: url("data:image/svg+xml,%3Csvg width='200' height='200' xmlns='http://www.w3.org/2000/svg'%3E%3Ccircle cx='10' cy='10' r='1' fill='rgba(255,255,255,0.1)'/%3E%3Ccircle cx='50' cy='80' r='1.5' fill='rgba(255,255,255,0.1)'/%3E%3C/svg%3E");
-            animation: drift 20s linear infinite;
+            z-index: 50;
+            display: none; 
+        }
+        .wire {
+            position: absolute;
+            top: -20px;
+            left: -5%;
+            width: 110%;
+            height: 100px;
+            border-bottom: 2px solid #222;
+            border-radius: 50%;
+        }
+        .bulb-holder {
+            position: absolute;
+            top: 65px; 
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            transform-origin: top center;
+        }
+        .bulb-c9 {
+            width: 16px;
+            height: 30px;
+            border-radius: 50% 50% 20% 20%;
+            margin-top: -2px;
+            position: relative;
+            box-shadow: 0 0 10px currentColor;
+        }
+        .bulb-c9::after {
+            content: '';
+            position: absolute;
+            top: 5px;
+            left: 4px;
+            width: 4px;
+            height: 8px;
+            background: rgba(255,255,255,0.4);
+            border-radius: 50%;
         }
 
-        @keyframes drift {
-            from { background-position: 0 0; }
-            to { background-position: 100px 100px; }
-        }
     </style>
 </head>
-<body class="min-h-screen relative overflow-x-hidden">
-    
-    <!-- Ash Particles -->
-    <div class="particles"></div>
+<body class="min-h-screen right-side-up relative transition-colors duration-1000">
 
-    <div class="relative z-10 container mx-auto px-4 py-12 max-w-2xl">
-        <!-- Header -->
-        <header class="text-center mb-16">
-            <h1 class="text-5xl md:text-7xl font-bold upside-down-text text-red-600 mb-4 tracking-tighter">
-                STRANGER<br>PREDICTIONS
+    <!-- CRT Overlay -->
+    <div class="crt-overlay"></div>
+    <div class="scanline-bar"></div>
+
+    <!-- Audio Elements -->
+    <audio id="bg-music" loop>
+        <source src="https://www.soundhelix.com/examples/mp3/SoundHelix-Song-1.mp3" type="audio/mpeg">
+    </audio>
+    <!-- SFX -->
+    <audio id="sfx-flip" src="https://www.soundjay.com/switches/switch-1.mp3"></audio>
+    <audio id="sfx-vote" src="https://www.soundjay.com/buttons/button-09.mp3"></audio>
+
+    <!-- Firebase SDKs -->
+    <script type="module">
+        import { initializeApp } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-app.js";
+        import { getFirestore, doc, getDoc, updateDoc, setDoc, increment, collection, onSnapshot } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js";
+        // IMPORT FIX: Added signInWithCustomToken
+        import { getAuth, signInAnonymously, signInWithCustomToken } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-auth.js";
+
+        // Global variables provided by environment
+        const appId = typeof __app_id !== 'undefined' ? __app_id : 'default-app-id';
+        const firebaseConfig = JSON.parse(__firebase_config);
+
+        const app = initializeApp(firebaseConfig);
+        const auth = getAuth(app);
+        const db = getFirestore(app);
+
+        // --- AUTH & INIT ---
+        const initAuth = async () => {
+             if (typeof __initial_auth_token !== 'undefined' && __initial_auth_token) {
+                await signInWithCustomToken(auth, __initial_auth_token);
+             } else {
+                await signInAnonymously(auth);
+             }
+        };
+        
+        initAuth().then(() => {
+            console.log("Connected to Hawkins Power & Light...");
+            setupGlobalListener(); // Listen for total votes
+        }).catch(err => {
+            console.error("Mind Flayer interference:", err);
+            // Fallback for demo purposes if auth fails completely
+            setupGlobalListener();
+        });
+
+        // --- DATA ---
+        
+        const characters = [
+            "Eleven", "Vecna", "Will", "Dustin", "Steve", 
+            "Mike", "Max", "Nancy", "Johnathan", "Robin", 
+            "Vicky", "Erica", "Kali (008)", "Holly", "Derek", 
+            "Murray", "Hopper", "Joyce", "Dr. Kay"
+        ];
+
+        const theoryQuestions = [
+            {
+                id: "villain_ultimate",
+                question: "Who is the ULTIMATE Evil?",
+                options: ["Vecna", "Mind Flayer", "The Government", "Will"]
+            },
+            {
+                id: "dimension_x",
+                question: "Is Dimension X Real?",
+                options: ["Yes", "No"]
+            },
+            {
+                id: "henry_alignment",
+                question: "Is Henry Creel truly evil?",
+                options: ["Yes", "No", "It's Complicated"]
+            },
+            {
+                id: "wormholes",
+                question: "Will wormholes appear?",
+                options: ["Yes", "No"]
+            },
+            {
+                id: "eddie_return",
+                question: "Is Eddie Alive?",
+                options: ["No", "Yes (Vampire Kas)", "Flashback Only"]
+            },
+            {
+                id: "max_sight",
+                question: "Will Max see again?",
+                options: ["Yes", "No"]
+            },
+            {
+                id: "time_jump",
+                question: "Is there a huge time jump?",
+                options: ["Yes", "No"]
+            },
+            {
+                id: "byler",
+                question: "Will Byler happen?",
+                options: ["Yes", "No"]
+            }
+        ];
+
+        // --- GLOBAL FUNCTIONS ---
+        
+        window.toggleUpsideDown = () => {
+            document.body.classList.toggle('upside-down-mode');
+            document.body.classList.toggle('right-side-up');
+            
+            // SFX
+            const sfx = document.getElementById('sfx-flip');
+            if(sfx) { sfx.currentTime = 0; sfx.play().catch(e=>{}); }
+
+            // Re-render particles based on mode
+            const container = document.getElementById('particles-container');
+            container.innerHTML = '';
+            initParticles();
+        };
+        
+        // Music Toggle
+        window.toggleMusic = () => {
+            const audio = document.getElementById('bg-music');
+            const icon = document.getElementById('music-icon');
+            if (audio.paused) {
+                audio.volume = 0.3;
+                audio.play();
+                icon.innerHTML = '<i data-lucide="pause-circle" class="w-6 h-6"></i>';
+            } else {
+                audio.pause();
+                icon.innerHTML = '<i data-lucide="play-circle" class="w-6 h-6"></i>';
+            }
+            lucide.createIcons();
+        };
+
+        window.castVote = async (qId, idx, optText, isChar = false) => {
+            const btnId = `btn-${qId}-${idx}`;
+            const btn = document.getElementById(btnId);
+            const parent = document.getElementById(`options-${qId}`);
+            
+            // Play SFX
+            const sfx = document.getElementById('sfx-vote');
+            if(sfx) { sfx.volume = 0.4; sfx.play().catch(e=>{}); }
+            
+            if(btn) btn.innerHTML = `<span class="animate-pulse">SAVING...</span>`;
+            if(parent) parent.style.pointerEvents = 'none';
+
+            try {
+                // Check auth again just in case
+                if (!auth.currentUser) await signInAnonymously(auth);
+                const user = auth.currentUser;
+
+                // Correct Path: artifacts/{appId}/public/data/{collectionName}
+                const collectionName = isChar ? "character_votes" : "theory_votes";
+                const docRef = doc(db, 'artifacts', appId, 'public', 'data', collectionName, qId);
+                
+                // Update specific question
+                try {
+                    await updateDoc(docRef, {
+                        [`votes_${idx}`]: increment(1),
+                        total: increment(1)
+                    });
+                } catch (e) {
+                    const initialData = { total: 1 };
+                    initialData[`votes_${idx}`] = 1;
+                    await setDoc(docRef, initialData);
+                }
+
+                // Update GLOBAL counter
+                const statsRef = doc(db, 'artifacts', appId, 'public', 'data', 'stats', 'global_votes');
+                try {
+                    await updateDoc(statsRef, { count: increment(1) });
+                } catch(e) {
+                    await setDoc(statsRef, { count: 1 });
+                }
+
+                localStorage.setItem(`voted_${qId}`, idx);
+                renderResults(qId, isChar);
+
+            } catch (err) {
+                console.error("Vote failed:", err);
+                if(btn) btn.innerText = "ERROR";
+                // Even on error, if it's permission based, show results so user doesn't feel stuck
+                renderResults(qId, isChar);
+                if(parent) parent.style.pointerEvents = 'auto';
+            }
+        };
+
+        window.renderResults = async (qId, isChar) => {
+            const resultsArea = document.getElementById(`results-${qId}`);
+            const optionsArea = document.getElementById(`options-${qId}`);
+
+            if(optionsArea) optionsArea.classList.add('hidden');
+            if(resultsArea) resultsArea.classList.remove('hidden');
+
+            const collectionName = isChar ? "character_votes" : "theory_votes";
+            const docRef = doc(db, 'artifacts', appId, 'public', 'data', collectionName, qId);
+            
+            // Allow immediate display if we just voted locally, otherwise fetch
+            let data = { total: 0 };
+            try {
+                const snap = await getDoc(docRef);
+                if (snap.exists()) data = snap.data();
+            } catch(e) { console.log("Read error (expected if offline/no-perm):", e); }
+
+            const total = data.total || 0;
+            
+            let options = [];
+            if (isChar) {
+                options = ["Lives", "Dies"];
+            } else {
+                const q = theoryQuestions.find(t => t.id === qId);
+                options = q ? q.options : [];
+            }
+
+            let html = `<div class="space-y-2 mt-2">`;
+            options.forEach((opt, idx) => {
+                const count = data[`votes_${idx}`] || 0;
+                const percent = total > 0 ? Math.round((count / total) * 100) : 0;
+                const userVote = localStorage.getItem(`voted_${qId}`);
+                const isUserVote = userVote == idx;
+                
+                let barColor = "bg-gray-700";
+                if (isChar) {
+                    barColor = idx === 0 ? "bg-green-600" : "bg-red-700";
+                } else {
+                    barColor = "bg-netflix-red";
+                }
+
+                html += `
+                    <div class="text-[10px] md:text-xs font-mono">
+                        <div class="flex justify-between mb-1">
+                            <span class="${isUserVote ? 'text-white font-bold' : 'text-gray-400'}">
+                                ${opt}
+                            </span>
+                            <span class="text-gray-400">${percent}%</span>
+                        </div>
+                        <div class="w-full bg-gray-900 rounded-full h-1.5 md:h-2 overflow-hidden border border-gray-800">
+                            <div class="${barColor} h-full rounded-full poll-bar-fill animate-barber transition-all duration-1000" style="width: ${percent}%"></div>
+                        </div>
+                    </div>
+                `;
+            });
+            html += `</div>`;
+            if(resultsArea) resultsArea.innerHTML = html;
+        };
+
+        // Listen for global vote count
+        function setupGlobalListener() {
+            const statsRef = doc(db, 'artifacts', appId, 'public', 'data', 'stats', 'global_votes');
+            // Safe listener
+            try {
+                onSnapshot(statsRef, (doc) => {
+                    if(doc.exists()) {
+                        const count = doc.data().count || 0;
+                        updateSplitFlapCounter(count);
+                    }
+                }, (error) => {
+                    console.log("Global listener paused (expected if not authed yet)");
+                });
+            } catch(e) {}
+        }
+
+        // --- INITIALIZATION ---
+        document.addEventListener('DOMContentLoaded', () => {
+            initParticles();
+            initCountdown();
+            renderTheories();
+            renderDeathPool();
+            checkChristmas();
+        });
+
+        // --- DOM RENDERERS ---
+
+        function renderTheories() {
+            const container = document.getElementById('theories-container');
+            theoryQuestions.forEach(q => {
+                const hasVoted = localStorage.getItem(`voted_${q.id}`);
+                const div = document.createElement('div');
+                div.className = 'glass-card rounded-xl p-6 relative overflow-hidden group';
+                div.id = `card-${q.id}`;
+                div.innerHTML = `
+                    <div class="absolute top-0 right-0 p-4 opacity-10 group-hover:opacity-30 transition">
+                        <i data-lucide="tv" class="w-12 h-12 text-netflix-red"></i>
+                    </div>
+                    <h3 class="text-lg md:text-xl font-stranger text-red-500 mb-4 tracking-wider">${q.question}</h3>
+                    
+                    <div id="options-${q.id}" class="${hasVoted ? 'hidden' : ''} grid gap-2">
+                        ${q.options.map((opt, idx) => `
+                            <button id="btn-${q.id}-${idx}" 
+                                onclick="castVote('${q.id}', ${idx}, '${opt.replace(/'/g, "\\'")}', false)"
+                                class="w-full text-left p-2 rounded bg-gray-900/50 hover:bg-netflix-red/20 border border-gray-700 hover:border-red-500 transition-all font-mono text-sm text-gray-300 hover:text-white flex justify-between items-center group-btn">
+                                <span>${opt}</span>
+                            </button>
+                        `).join('')}
+                    </div>
+                    
+                    <div id="results-${q.id}" class="${hasVoted ? '' : 'hidden'}"></div>
+                `;
+                container.appendChild(div);
+                if (hasVoted) renderResults(q.id, false);
+            });
+            lucide.createIcons();
+        }
+
+        function renderDeathPool() {
+            const container = document.getElementById('death-pool-grid');
+            characters.forEach((char, index) => {
+                const id = `char_${char.replace(/\s+/g, '_').toLowerCase()}`;
+                const hasVoted = localStorage.getItem(`voted_${id}`);
+
+                const div = document.createElement('div');
+                div.className = 'death-pool-card rounded-lg p-3 border border-gray-800 hover:border-gray-600 transition flex flex-col justify-between';
+                div.id = `card-${id}`;
+                
+                div.innerHTML = `
+                    <div class="flex justify-between items-center mb-2">
+                        <h4 class="font-bold text-sm text-gray-300 truncate">${char}</h4>
+                        ${index < 3 ? '<span class="text-[10px] bg-red-900/50 text-red-200 px-1 rounded">HOT</span>' : ''}
+                    </div>
+
+                    <div id="options-${id}" class="${hasVoted ? 'hidden' : ''} grid grid-cols-2 gap-2">
+                        <button id="btn-${id}-0" onclick="castVote('${id}', 0, 'Lives', true)" 
+                            class="py-1 bg-gray-800 hover:bg-green-900/50 hover:text-green-400 text-gray-500 rounded text-[10px] font-bold transition border border-gray-700">
+                            LIVES
+                        </button>
+                        <button id="btn-${id}-1" onclick="castVote('${id}', 1, 'Dies', true)" 
+                            class="py-1 bg-gray-800 hover:bg-red-900/50 hover:text-red-400 text-gray-500 rounded text-[10px] font-bold transition border border-gray-700">
+                            DIES
+                        </button>
+                    </div>
+
+                    <div id="results-${id}" class="${hasVoted ? '' : 'hidden'}"></div>
+                `;
+                container.appendChild(div);
+                if (hasVoted) renderResults(id, true);
+            });
+        }
+
+        // --- VISUAL & LOGIC ---
+
+        function checkChristmas() {
+            const now = new Date();
+            const estString = now.toLocaleString("en-US", {timeZone: "America/New_York"});
+            const estDate = new Date(estString);
+            
+            // Month is 0-indexed (11 = Dec). Date is 1-indexed.
+            const isChristmas = estDate.getMonth() === 11 && estDate.getDate() === 25; 
+            
+            if(isChristmas) {
+                document.getElementById('joyce-lights').style.display = 'block';
+            }
+        }
+
+        function initParticles() {
+            const container = document.getElementById('particles-container');
+            container.innerHTML = '';
+            const isUpsideDown = document.body.classList.contains('upside-down-mode');
+            const particleCount = isUpsideDown ? 60 : 40;
+            
+            for(let i=0; i<particleCount; i++) {
+                createParticle(container, isUpsideDown);
+            }
+        }
+
+        function createParticle(container, isUpsideDown) {
+            const p = document.createElement('div');
+            
+            if(isUpsideDown) {
+                p.className = 'spore';
+                p.style.background = `rgba(${150 + Math.random()*100}, 0, 0, 0.6)`;
+            } else {
+                p.className = Math.random() > 0.5 ? 'particle' : 'particle ash';
+            }
+            
+            const size = Math.random() * 3 + 1;
+            p.style.width = `${size}px`;
+            p.style.height = `${size}px`;
+            
+            p.style.left = `${Math.random() * 100}vw`;
+            p.style.top = `${Math.random() * -10}vh`; 
+            
+            const duration = Math.random() * 5 + 5;
+            p.style.transition = `top ${duration}s linear, opacity ${duration}s ease-in, transform 3s ease-in-out`;
+            
+            container.appendChild(p);
+            
+            setTimeout(() => {
+                p.style.top = '105vh';
+                p.style.opacity = '0';
+                p.style.transform = `translateX(${Math.random() * 50 - 25}px)`;
+            }, 100);
+
+            setTimeout(() => {
+                p.remove();
+                createParticle(container, isUpsideDown);
+            }, duration * 1000);
+        }
+
+        function initCountdown() {
+            // Set for JULY 2026 (Future date relative to Dec 2025)
+            const targetDate = new Date("July 15, 2026 00:00:00").getTime();
+            
+            function update() {
+                const now = new Date().getTime();
+                const distance = targetDate - now;
+
+                if (distance < 0) {
+                    updateFlap('days', '00');
+                    updateFlap('hours', '00');
+                    updateFlap('minutes', '00');
+                    return;
+                }
+
+                const days = Math.floor(distance / (1000 * 60 * 60 * 24));
+                const hours = Math.floor((distance % (1000 * 60 * 60 * 24)) / (1000 * 60 * 60));
+                const minutes = Math.floor((distance % (1000 * 60 * 60)) / (1000 * 60));
+
+                updateFlap('days', days);
+                updateFlap('hours', hours);
+                updateFlap('minutes', minutes);
+            }
+            
+            setInterval(update, 1000);
+            update();
+        }
+
+        function updateFlap(id, value) {
+            const el = document.getElementById(`flap-${id}`);
+            if(!el) return;
+            const valStr = value < 10 ? `0${value}` : value;
+            if(el.innerText !== valStr.toString()) {
+                el.innerText = valStr;
+                el.classList.remove('animate-pulse');
+                void el.offsetWidth; // trigger reflow
+                el.classList.add('animate-pulse');
+            }
+        }
+
+        function updateSplitFlapCounter(count) {
+            const container = document.getElementById('global-vote-counter');
+            if(!container) return;
+            
+            // Format to 6 digits
+            const str = count.toString().padStart(6, '0');
+            const digits = str.split('');
+            
+            // Generate HTML for each digit
+            container.innerHTML = digits.map(d => `
+                <div class="flap-unit w-6 h-10 md:w-8 md:h-12 text-lg md:text-2xl leading-[2.5rem] md:leading-[3rem] border border-gray-700 bg-black text-red-500 font-arcade">
+                    ${d}
+                    <div class="flap-line"></div>
+                </div>
+            `).join('');
+        }
+
+    </script>
+
+    <!-- UI STRUCTURE -->
+
+    <!-- Joyce's Lights (Hidden unless Xmas) -->
+    <div id="joyce-lights" class="lights-container">
+        <div class="wire"></div>
+        <script>
+            const colors = ['#f00', '#0f0', '#00f', '#ff0', '#f0f'];
+            const container = document.querySelector('.lights-container .wire');
+            if(container) {
+                let html = '';
+                for(let i=0; i<20; i++) {
+                    const color = colors[i % colors.length];
+                    const left = (i * 5) + 2;
+                    const rotate = (i % 2 === 0 ? 10 : -10) + (Math.random() * 10 - 5);
+                    html += `
+                        <div class="bulb-holder" style="left: ${left}%; transform: rotate(${rotate}deg)">
+                            <div class="socket"></div>
+                            <div class="bulb-c9" style="background: ${color}; color: ${color}; animation: flicker ${Math.random()*2 + 1}s infinite alternate;"></div>
+                        </div>
+                    `;
+                }
+                document.write(`<div style="position:absolute; width:100%; height:100%; top:0; left:0; pointer-events:none;">${html}</div>`);
+            }
+        </script>
+    </div>
+
+    <!-- Particles -->
+    <div id="particles-container"></div>
+    
+    <!-- Audio Control (Fixed Bottom Right) -->
+    <div class="fixed bottom-4 right-4 z-50">
+        <button onclick="toggleMusic()" class="bg-black/80 border border-gray-700 text-gray-400 p-2 rounded-full hover:text-white hover:border-red-500 transition-colors" id="music-icon">
+             <i data-lucide="play-circle" class="w-6 h-6"></i>
+        </button>
+    </div>
+
+    <main class="relative z-10 container mx-auto px-4 py-8 pb-32 max-w-5xl">
+        
+        <!-- HEADER -->
+        <header class="text-center mb-8 mt-12 relative">
+            <h1 class="text-5xl md:text-8xl font-bold stranger-title text-netflix-red mb-2 tracking-tighter animate-intro" 
+                onclick="toggleUpsideDown()" title="Click to flip to the Upside Down">
+                STRANGER<br>THINGS 5
             </h1>
-            <p class="text-gray-400 font-['Roboto_Mono'] text-sm md:text-base border-t border-b border-gray-800 py-4 inline-block px-8">
-                SEASON 5 • THE FINAL CHAPTER • CAST YOUR VOTE
-            </p>
+            
+            <div class="flex flex-col items-center justify-center gap-4 mt-8">
+                <!-- Global Vote Counter -->
+                <div class="flex flex-col items-center">
+                    <span class="text-[10px] text-gray-500 font-mono tracking-widest uppercase mb-1">Global Predictions</span>
+                    <div id="global-vote-counter" class="flex gap-1 shadow-[0_0_15px_rgba(255,0,0,0.3)]">
+                        <!-- Initial 000000 -->
+                        <div class="flap-unit w-8 h-12 font-arcade pt-2">0<div class="flap-line"></div></div>
+                        <div class="flap-unit w-8 h-12 font-arcade pt-2">0<div class="flap-line"></div></div>
+                        <div class="flap-unit w-8 h-12 font-arcade pt-2">0<div class="flap-line"></div></div>
+                        <div class="flap-unit w-8 h-12 font-arcade pt-2">0<div class="flap-line"></div></div>
+                        <div class="flap-unit w-8 h-12 font-arcade pt-2">0<div class="flap-line"></div></div>
+                        <div class="flap-unit w-8 h-12 font-arcade pt-2">0<div class="flap-line"></div></div>
+                    </div>
+                </div>
+            </div>
         </header>
 
-        <!-- Questions Container -->
-        <div id="questions-container"></div>
+        <!-- COUNTDOWN -->
+        <section class="mb-16 flex justify-center">
+            <div class="bg-black/40 p-4 md:p-6 rounded-xl border border-gray-800 backdrop-blur-sm shadow-2xl relative overflow-hidden group">
+                <div class="absolute inset-0 bg-red-900/10 opacity-0 group-hover:opacity-100 transition duration-500"></div>
+                <div class="text-center text-xs text-gray-500 mb-4 font-mono tracking-widest uppercase">Est. Time Until The End</div>
+                <div class="flex gap-4 md:gap-8 relative z-10">
+                    <div class="text-center">
+                        <div id="flap-days" class="flap-unit mb-2 text-3xl md:text-4xl h-12 md:h-16 w-12 md:w-20 leading-[3rem] md:leading-[4rem] font-arcade text-gray-200">00<div class="flap-line"></div></div>
+                        <span class="text-[10px] text-gray-500">DAYS</span>
+                    </div>
+                    <div class="text-center">
+                        <div id="flap-hours" class="flap-unit mb-2 text-3xl md:text-4xl h-12 md:h-16 w-12 md:w-20 leading-[3rem] md:leading-[4rem] font-arcade text-gray-200">00<div class="flap-line"></div></div>
+                        <span class="text-[10px] text-gray-500">HRS</span>
+                    </div>
+                    <div class="text-center">
+                        <div id="flap-minutes" class="flap-unit mb-2 text-3xl md:text-4xl h-12 md:h-16 w-12 md:w-20 leading-[3rem] md:leading-[4rem] font-arcade text-gray-200">00<div class="flap-line"></div></div>
+                        <span class="text-[10px] text-gray-500">MINS</span>
+                    </div>
+                </div>
+            </div>
+        </section>
 
-        <!-- Footer -->
-        <footer class="text-center mt-12 text-gray-600 text-xs font-['Roboto_Mono']">
-            <p>Fan site. Not affiliated with Netflix.</p>
-            <p class="mt-2">Votes are updated in real-time from the Upside Down.</p>
+        <!-- BIG THEORIES -->
+        <section class="mb-16">
+            <div class="flex items-center gap-4 mb-6">
+                <div class="h-px bg-gray-800 flex-1"></div>
+                <h2 class="text-xl font-mono text-gray-400 uppercase tracking-widest text-shadow-sm">Theories</h2>
+                <div class="h-px bg-gray-800 flex-1"></div>
+            </div>
+            
+            <div id="theories-container" class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
+                <!-- Injected via JS -->
+            </div>
+        </section>
+
+        <!-- CHARACTER DEATH POOL -->
+        <section>
+            <div class="flex items-center gap-4 mb-6">
+                <div class="h-px bg-gray-800 flex-1"></div>
+                <h2 class="text-xl font-mono text-red-500 uppercase tracking-widest flex items-center gap-2" style="text-shadow: 0 0 10px rgba(220, 38, 38, 0.5)">
+                    <i data-lucide="skull" class="w-5 h-5"></i> Death Pool
+                </h2>
+                <div class="h-px bg-gray-800 flex-1"></div>
+            </div>
+            
+            <div id="death-pool-grid" class="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4">
+                <!-- Injected via JS -->
+            </div>
+        </section>
+
+        <!-- FOOTER -->
+        <footer class="mt-24 text-center border-t border-gray-900 pt-8">
+            <p class="font-stranger text-2xl text-gray-800 mb-4 opacity-50">FRIENDS DON'T LIE</p>
+            <div class="text-xs text-gray-600 font-mono space-y-2">
+                <p>Created by a fan. Not affiliated with Netflix or the Duffer Brothers.</p>
+                <p>Hawkins, Indiana • 1987</p>
+            </div>
         </footer>
-    </div>
+
+    </main>
 
 </body>
 </html>
