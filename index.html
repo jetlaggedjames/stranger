@@ -1,0 +1,242 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Stranger Things 5: The Final Predictions</title>
+    
+    <!-- Google Fonts for that Retro 80s Look -->
+    <link href="https://fonts.googleapis.com/css2?family=Benguiat&family=Roboto+Mono:wght@400;700&display=swap" rel="stylesheet">
+    
+    <!-- Tailwind CSS for styling -->
+    <script src="https://cdn.tailwindcss.com"></script>
+
+    <!-- Firebase SDKs -->
+    <script type="module">
+        import { initializeApp } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-app.js";
+        import { getFirestore, doc, getDoc, updateDoc, setDoc, increment, arrayUnion } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js";
+        import { getAnalytics } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-analytics.js";
+
+        // --- FIREBASE CONFIGURATION ---
+        const firebaseConfig = {
+            apiKey: "AIzaSyAqEtbev8LIQXbs9y-SS1Wb4ETSAkne0NY",
+            authDomain: "stranger-predictions.firebaseapp.com",
+            projectId: "stranger-predictions",
+            storageBucket: "stranger-predictions.firebasestorage.app",
+            messagingSenderId: "132076207960",
+            appId: "1:132076207960:web:b15f98fe8953b7106eaf2d",
+            measurementId: "G-13XEZ9XJRK"
+        };
+
+        // Initialize Firebase
+        const app = initializeApp(firebaseConfig);
+        const db = getFirestore(app);
+        
+        // Initialize Analytics since ID is present
+        if (firebaseConfig.measurementId) {
+            const analytics = getAnalytics(app);
+        }
+
+        // --- PREDICTION DATA ---
+        const predictionQuestions = [
+            {
+                id: "villain",
+                question: "Who is the ULTIMATE villain?",
+                options: ["Vecna (Henry Creel)", " The Mind Flayer (Itself)", "Evil Will Byers", "Dr. Brenner Returns"]
+            },
+            {
+                id: "death",
+                question: "Who is most likely to die?",
+                options: ["Steve Harrington", "Eleven", "Will Byers", "Jonathan Byers", "Nobody (Happy Ending)"]
+            },
+            {
+                id: "max",
+                question: "What happens to Max?",
+                options: ["She wakes up fully healed", "She wakes up blind", "She becomes a vessel for Vecna", "She doesn't make it"]
+            },
+            {
+                id: "eddie",
+                question: "Does Eddie Munson return?",
+                options: ["No, he's gone", "Yes, as a memory/flashback", "Yes, as 'Kas the Bloody-Handed' (Vampire)"]
+            }
+        ];
+
+        // --- LOGIC ---
+        
+        // 1. Render the questions
+        function renderQuestions() {
+            const container = document.getElementById('questions-container');
+            
+            predictionQuestions.forEach(q => {
+                const card = document.createElement('div');
+                card.className = "bg-gray-900 border-2 border-red-900 rounded-lg p-6 mb-8 shadow-[0_0_15px_rgba(220,38,38,0.3)]";
+                card.innerHTML = `
+                    <h3 class="text-2xl font-['Benguiat'] text-red-500 mb-4 tracking-widest uppercase text-center drop-shadow-md">${q.question}</h3>
+                    <div id="options-${q.id}" class="grid gap-3">
+                        ${q.options.map((opt, index) => `
+                            <button onclick="castVote('${q.id}', '${index}', '${opt.replace(/'/g, "\\'")}')" 
+                                    class="vote-btn hover:bg-red-900/50 border border-red-800 text-gray-300 py-3 px-4 rounded text-left transition-all duration-300 font-['Roboto_Mono'] group">
+                                <span class="group-hover:text-white">${opt}</span>
+                            </button>
+                        `).join('')}
+                    </div>
+                    <div id="results-${q.id}" class="hidden mt-4 space-y-3 font-['Roboto_Mono']">
+                        <!-- Results will be injected here -->
+                    </div>
+                `;
+                container.appendChild(card);
+            });
+        }
+
+        // 2. Handle Voting
+        window.castVote = async (questionId, optionIndex, optionText) => {
+            // Check local storage to see if they already voted on this
+            if (localStorage.getItem(`voted_${questionId}`)) {
+                alert("You already voted on this! Showing results...");
+                showResults(questionId);
+                return;
+            }
+
+            // UI Feedback
+            const btnContainer = document.getElementById(`options-${questionId}`);
+            btnContainer.classList.add('opacity-50', 'pointer-events-none');
+
+            try {
+                // Reference to the specific question document
+                const docRef = doc(db, "votes", questionId);
+                
+                // Get current state to see if doc exists, if not create it
+                const docSnap = await getDoc(docRef);
+                
+                if (!docSnap.exists()) {
+                    // Initialize if it doesn't exist
+                    await setDoc(docRef, { total: 0 });
+                }
+
+                // Atomic increment of the vote count
+                await updateDoc(docRef, {
+                    [`votes_${optionIndex}`]: increment(1),
+                    total: increment(1)
+                });
+
+                // Save to local storage so they can't spam
+                localStorage.setItem(`voted_${questionId}`, 'true');
+
+                // Show results
+                await showResults(questionId);
+
+            } catch (error) {
+                console.error("Error voting:", error);
+                alert("Something went wrong with the Upside Down... (Check console if you are the dev)");
+                btnContainer.classList.remove('opacity-50', 'pointer-events-none');
+            }
+        };
+
+        // 3. Show Results
+        async function showResults(questionId) {
+            const optionsContainer = document.getElementById(`options-${questionId}`);
+            const resultsContainer = document.getElementById(`results-${questionId}`);
+            
+            // Hide buttons, show results area
+            optionsContainer.style.display = 'none';
+            resultsContainer.classList.remove('hidden');
+            resultsContainer.innerHTML = '<p class="text-red-400 animate-pulse">Fetching from the Upside Down...</p>';
+
+            const docRef = doc(db, "votes", questionId);
+            const docSnap = await getDoc(docRef);
+
+            if (docSnap.exists()) {
+                const data = docSnap.data();
+                const total = data.total || 1;
+                const questionData = predictionQuestions.find(q => q.id === questionId);
+
+                let html = '';
+                questionData.options.forEach((opt, index) => {
+                    const count = data[`votes_${index}`] || 0;
+                    const percent = Math.round((count / total) * 100);
+                    
+                    html += `
+                        <div class="relative pt-1">
+                            <div class="flex mb-2 items-center justify-between">
+                                <span class="text-xs font-semibold inline-block text-red-200">
+                                    ${opt}
+                                </span>
+                                <span class="text-xs font-semibold inline-block text-red-200">
+                                    ${percent}% (${count} votes)
+                                </span>
+                            </div>
+                            <div class="overflow-hidden h-2 mb-4 text-xs flex rounded bg-gray-800 border border-gray-700">
+                                <div style="width:${percent}%" class="shadow-none flex flex-col text-center whitespace-nowrap text-white justify-center bg-red-700 transition-all duration-1000"></div>
+                            </div>
+                        </div>
+                    `;
+                });
+                resultsContainer.innerHTML = html;
+            }
+        }
+
+        // Initialize on load
+        renderQuestions();
+    </script>
+    
+    <style>
+        body {
+            background-color: #050505;
+            color: #e5e5e5;
+            background-image: radial-gradient(circle at 50% 50%, #1a0505 0%, #000000 100%);
+        }
+        
+        .upside-down-text {
+            font-family: 'Benguiat', serif;
+            text-shadow: 
+                0 0 5px #ff0000,
+                0 0 10px #8b0000;
+        }
+
+        /* Floating ash particle effect container */
+        .particles {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            pointer-events: none;
+            z-index: 0;
+            background-image: url("data:image/svg+xml,%3Csvg width='200' height='200' xmlns='http://www.w3.org/2000/svg'%3E%3Ccircle cx='10' cy='10' r='1' fill='rgba(255,255,255,0.1)'/%3E%3Ccircle cx='50' cy='80' r='1.5' fill='rgba(255,255,255,0.1)'/%3E%3C/svg%3E");
+            animation: drift 20s linear infinite;
+        }
+
+        @keyframes drift {
+            from { background-position: 0 0; }
+            to { background-position: 100px 100px; }
+        }
+    </style>
+</head>
+<body class="min-h-screen relative overflow-x-hidden">
+    
+    <!-- Ash Particles -->
+    <div class="particles"></div>
+
+    <div class="relative z-10 container mx-auto px-4 py-12 max-w-2xl">
+        <!-- Header -->
+        <header class="text-center mb-16">
+            <h1 class="text-5xl md:text-7xl font-bold upside-down-text text-red-600 mb-4 tracking-tighter">
+                STRANGER<br>PREDICTIONS
+            </h1>
+            <p class="text-gray-400 font-['Roboto_Mono'] text-sm md:text-base border-t border-b border-gray-800 py-4 inline-block px-8">
+                SEASON 5 • THE FINAL CHAPTER • CAST YOUR VOTE
+            </p>
+        </header>
+
+        <!-- Questions Container -->
+        <div id="questions-container"></div>
+
+        <!-- Footer -->
+        <footer class="text-center mt-12 text-gray-600 text-xs font-['Roboto_Mono']">
+            <p>Fan site. Not affiliated with Netflix.</p>
+            <p class="mt-2">Votes are updated in real-time from the Upside Down.</p>
+        </footer>
+    </div>
+
+</body>
+</html>
